@@ -25,23 +25,23 @@ class Matrix: # pylint: disable = too-many-public-methods
     >>> Vector(3, 2, 1) - Vector(5, 6, 7)
     Vector(-2, -4, -6)
 
-    >>> Tuple4(1, -2, 3, -4) * 3.5
-    Tuple4(3.5, -7.0, 10.5, -14.0)
+    >>> Tuple4(1, -2, 3, -4) * 3.5 == Tuple4(3.5, -7, 10.5, -14)
+    True
 
-    >>> 0.5 * Tuple4(1, -2, 3, -4)
-    Tuple4(0.5, -1.0, 1.5, -2.0)
+    >>> 0.5 * Tuple4(1, -2, 3, -4) == Tuple4(0.5, -1, 1.5, -2)
+    True
 
-    >>> Tuple4(1, -2, 3, -4) / 2
-    Tuple4(0.5, -1.0, 1.5, -2.0)
+    >>> Tuple4(1, -2, 3, -4) / 2 == Tuple4(0.5, -1, 1.5, -2)
+    True
 
-    >>> Vector(1, 0, 0).magnitude
-    1.0
+    >>> Vector(1, 0, 0).magnitude == 1
+    True
 
-    >>> Vector(0, 1, 0).magnitude
-    1.0
+    >>> Vector(0, 1, 0).magnitude == 1
+    True
 
-    >>> Vector(0, 0, 1).magnitude
-    1.0
+    >>> Vector(0, 0, 1).magnitude == 1
+    True
 
     >>> Vector(1, 2, 3).magnitude == sqrt(14)
     True
@@ -49,11 +49,11 @@ class Matrix: # pylint: disable = too-many-public-methods
     >>> Vector(-1, -2, -3).magnitude == sqrt(14)
     True
 
-    >>> Vector(4, 0, 0).normalize()
-    Vector(1.0, 0.0, 0.0)
+    >>> Vector(4, 0, 0).normalize() == Vector(1, 0, 0)
+    True
 
-    >>> Vector(1, 2, 3).normalize().magnitude
-    1.0
+    >>> Vector(1, 2, 3).normalize().magnitude == 1
+    True
 
     >>> Vector(1, 2, 3).dot(Vector(2, 3, 4))
     20
@@ -342,14 +342,14 @@ class Matrix: # pylint: disable = too-many-public-methods
     def translate(self, x, y, z):
         # type: (float, float, float) -> Matrix
         """
-        >>> identity().translate(5, -3, 2) @ Point(-3, 4, 5)
-        Point(2.0, 1.0, 7.0)
+        >>> identity().translate(5, -3, 2) @ Point(-3, 4, 5) == Point(2, 1, 7)
+        True
 
-        >>> identity().translate(5, -3, 2).inverse() @ Point(-3, 4, 5)
-        Point(-8.0, 7.0, 3.0)
+        >>> identity().translate(5, -3, 2).inverse() @ Point(-3, 4, 5) == Point(-8, 7, 3)
+        True
 
-        >>> identity().translate(5, -3, 2) @ Vector(-3, 4, 5)
-        Vector(-3.0, 4.0, 5.0)
+        >>> identity().translate(5, -3, 2) @ Vector(-3, 4, 5) == Vector(-3, 4, 5)
+        True
         """
         return (
             Matrix([[1, 0, 0, x], [0, 1, 0, y], [0, 0, 1, z], [0, 0, 0, 1]])
@@ -359,14 +359,14 @@ class Matrix: # pylint: disable = too-many-public-methods
     def scale(self, x, y, z):
         # type: (float, float, float) -> Matrix
         """
-        >>> identity().scale(2, 3, 4) @ Point(-4, 6, 8)
-        Point(-8.0, 18.0, 32.0)
+        >>> identity().scale(2, 3, 4) @ Point(-4, 6, 8) == Point(-8, 18, 32)
+        True
 
-        >>> identity().scale(2, 3, 4) @ Vector(-4, 6, 8)
-        Vector(-8.0, 18.0, 32.0)
+        >>> identity().scale(2, 3, 4) @ Vector(-4, 6, 8) == Vector(-8, 18, 32)
+        True
 
-        >>> identity().scale(2, 3, 4).inverse() @ Point(-4, 6, 8)
-        Point(-2.0, 2.0, 2.0)
+        >>> identity().scale(2, 3, 4).inverse() @ Point(-4, 6, 8) == Point(-2, 2, 2)
+        True
         """
         return (
             Matrix([[x, 0, 0, 0], [0, y, 0, 0], [0, 0, z, 0], [0, 0, 0, 1]])
@@ -397,18 +397,18 @@ class Matrix: # pylint: disable = too-many-public-methods
     def shear(self, x_y, x_z, y_x, y_z, z_x, z_y):
         # type: (float, float, float, float, float, float) -> Matrix
         """
-        >>> identity().shear(1, 0, 0, 0, 0, 0) @ Point(2, 3, 4)
-        Point(5.0, 3.0, 4.0)
-        >>> identity().shear(0, 1, 0, 0, 0, 0) @ Point(2, 3, 4)
-        Point(6.0, 3.0, 4.0)
-        >>> identity().shear(0, 0, 1, 0, 0, 0) @ Point(2, 3, 4)
-        Point(2.0, 5.0, 4.0)
-        >>> identity().shear(0, 0, 0, 1, 0, 0) @ Point(2, 3, 4)
-        Point(2.0, 7.0, 4.0)
-        >>> identity().shear(0, 0, 0, 0, 1, 0) @ Point(2, 3, 4)
-        Point(2.0, 3.0, 6.0)
-        >>> identity().shear(0, 0, 0, 0, 0, 1) @ Point(2, 3, 4)
-        Point(2.0, 3.0, 7.0)
+        >>> identity().shear(1, 0, 0, 0, 0, 0) @ Point(2, 3, 4) == Point(5, 3, 4)
+        True
+        >>> identity().shear(0, 1, 0, 0, 0, 0) @ Point(2, 3, 4) == Point(6, 3, 4)
+        True
+        >>> identity().shear(0, 0, 1, 0, 0, 0) @ Point(2, 3, 4) == Point(2, 5, 4)
+        True
+        >>> identity().shear(0, 0, 0, 1, 0, 0) @ Point(2, 3, 4) == Point(2, 7, 4)
+        True
+        >>> identity().shear(0, 0, 0, 0, 1, 0) @ Point(2, 3, 4) == Point(2, 3, 6)
+        True
+        >>> identity().shear(0, 0, 0, 0, 0, 1) @ Point(2, 3, 4) == Point(2, 3, 7)
+        True
         """
         return (
             Matrix([[1, x_y, x_z, 0], [y_x, 1, y_z, 0], [z_x, z_y, 1, 0], [0, 0, 0, 1]])
@@ -434,8 +434,8 @@ def Point(x, y, z): # pylint: disable = invalid-name
 def identity():
     # type: () -> Matrix
     """
-    >>> identity()
-    Matrix([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
+    >>> identity() == Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    True
     """
     return Matrix([(i * [0.0]) + [1.0] + (3 - i) * [0.0] for i in range(4)])
 
@@ -443,17 +443,17 @@ def identity():
 class Color:
     """An RGB color, specified between 0 and 1.
 
-    >>> Color(0.9, 0.6, 0.75) + Color(0.7, 0.1, 0.25)
-    Color(1.6, 0.7, 1.0)
+    >>> Color(0.9, 0.6, 0.75) + Color(0.7, 0.1, 0.25) == Color(1.6, 0.7, 1)
+    True
 
     >>> Color(0.9, 0.6, 0.75) - Color(0.7, 0.1, 0.25) == Color(0.2, 0.5, 0.5)
     True
 
-    >>> Color(0.2, 0.3, 0.4) * 2
-    Color(0.4, 0.6, 0.8)
+    >>> Color(0.2, 0.3, 0.4) * 2 == Color(0.4, 0.6, 0.8)
+    True
 
-    >>> 2 * Color(0.2, 0.3, 0.4)
-    Color(0.4, 0.6, 0.8)
+    >>> 2 * Color(0.2, 0.3, 0.4) == Color(0.4, 0.6, 0.8)
+    True
 
     >>> Color(1, 0.2, 0.4) * Color(0.9, 1, 0.1) == Color(0.9, 0.2, 0.04)
     True
@@ -602,24 +602,28 @@ class Ray:
         # type: (float) -> Matrix
         """
         >>> ray = Ray(Point(2, 3, 4), Vector(1, 0, 0))
-        >>> ray.position(0)
-        Point(2, 3, 4)
-        >>> ray.position(1)
-        Point(3, 3, 4)
-        >>> ray.position(-1)
-        Point(1, 3, 4)
-        >>> ray.position(2.5)
-        Point(4.5, 3.0, 4.0)
+        >>> ray.position(0) == Point(2, 3, 4)
+        True
+        >>> ray.position(1) == Point(3, 3, 4)
+        True
+        >>> ray.position(-1) == Point(1, 3, 4)
+        True
+        >>> ray.position(2.5) == Point(4.5, 3, 4)
+        True
         """
         return self.origin + t * self.direction
 
     def transform(self, transform):
         # type: (Matrix) -> Ray
         """
-        >>> Ray(Point(1, 2, 3), Vector(0, 1, 0)).transform(identity().translate(3, 4, 5))
-        Ray(Point(4.0, 6.0, 8.0), Vector(0.0, 1.0, 0.0))
-        >>> Ray(Point(1, 2, 3), Vector(0, 1, 0)).transform(identity().scale(2, 3, 4))
-        Ray(Point(2.0, 6.0, 12.0), Vector(0.0, 3.0, 0.0))
+        >>> actual = Ray(Point(1, 2, 3), Vector(0, 1, 0)).transform(identity().translate(3, 4, 5))
+        >>> expected = Ray(Point(4, 6, 8), Vector(0, 1, 0))
+        >>> actual == expected
+        True
+        >>> actual = Ray(Point(1, 2, 3), Vector(0, 1, 0)).transform(identity().scale(2, 3, 4))
+        >>> expected = Ray(Point(2, 6, 12), Vector(0, 3, 0))
+        >>> actual == expected
+        True
         """
         origin = transform @ self.origin
         direction = transform @ self.direction
@@ -659,23 +663,21 @@ class Intersection:
     def __init__(self, t, shape, ray): # pylint: disable = invalid-name
         # type: (float, Shape, Ray) -> None
         """
-        >>> ray = Ray(Point(0, 0, -5), Vector(0, 0, 1))
-        >>> intersection = Intersection(4, Sphere(), ray)
-        >>> intersection.point
-        Point(0, 0, -1)
-        >>> intersection.eye_vector
-        Vector(0, 0, -1)
-        >>> intersection.normal_vector
-        Vector(0.0, 0.0, -1.0)
+        >>> intersection = Intersection(4, Sphere(), Ray(Point(0, 0, -5), Vector(0, 0, 1)))
+        >>> intersection.point == Point(0, 0, -1)
+        True
+        >>> intersection.eye_vector == Vector(0, 0, -1)
+        True
+        >>> intersection.normal_vector == Vector(0, 0, -1)
+        True
 
-        >>> ray = Ray(Point(0, 0, 0), Vector(0, 0, 1))
-        >>> intersection = Intersection(1, Sphere(), ray)
-        >>> intersection.point
-        Point(0, 0, 1)
-        >>> intersection.eye_vector
-        Vector(0, 0, -1)
-        >>> intersection.normal_vector
-        Vector(0.0, 0.0, -1.0)
+        >>> intersection = Intersection(1, Sphere(), Ray(Point(0, 0, 0), Vector(0, 0, 1)))
+        >>> intersection.point == Point(0, 0, 1)
+        True
+        >>> intersection.eye_vector == Vector(0, 0, -1)
+        True
+        >>> intersection.normal_vector == Vector(0, 0, -1)
+        True
         >>> intersection.inside
         True
         """
@@ -803,14 +805,14 @@ class Sphere(Shape):
     def normal(self, point):
         # type: (Matrix) -> Matrix
         """
-        >>> Sphere().normal(Point(1, 0, 0))
-        Vector(1.0, 0.0, 0.0)
+        >>> Sphere().normal(Point(1, 0, 0)) == Vector(1, 0, 0)
+        True
 
-        >>> Sphere().normal(Point(0, 1, 0))
-        Vector(0.0, 1.0, 0.0)
+        >>> Sphere().normal(Point(0, 1, 0)) == Vector(0, 1, 0)
+        True
 
-        >>> Sphere().normal(Point(0, 0, 1))
-        Vector(0.0, 0.0, 1.0)
+        >>> Sphere().normal(Point(0, 0, 1)) == Vector(0, 0, 1)
+        True
         """
         object_normal = ((self.transform.inverse() @ point) - Point(0, 0, 0)).normalize()
         return (self.transform.inverse().transpose() @ object_normal).normalize()
@@ -869,11 +871,25 @@ def hit(*intersections):
 def lighting(point, light, eye_vector, normal_vector, material=None, in_shadow=False):
     # type: (Matrix, PointLight, Matrix, Matrix, Material, bool) -> Color
     """
-    >>> lighting(Point(0, 0, 0), PointLight(Point(0, 0, -10), Color(1, 1, 1)), Vector(0, 0, -1), Vector(0, 0, -1))
-    Color(1.9, 1.9, 1.9)
+    >>> actual = lighting(
+    ...     Point(0, 0, 0),
+    ...     PointLight(Point(0, 0, -10), Color(1, 1, 1)),
+    ...     Vector(0, 0, -1),
+    ...     Vector(0, 0, -1)
+    ... )
+    >>> expected = Color(1.9, 1.9, 1.9)
+    >>> actual == expected
+    True
 
-    >>> lighting(Point(0, 0, 0), PointLight(Point(0, 0, -10), Color(1, 1, 1)), Vector(0, 1, -1), Vector(0, 0, -1))
-    Color(1.0, 1.0, 1.0)
+    >>> actual = lighting(
+    ...     Point(0, 0, 0),
+    ...     PointLight(Point(0, 0, -10), Color(1, 1, 1)),
+    ...     Vector(0, 1, -1),
+    ...     Vector(0, 0, -1),
+    ... )
+    >>> expected = Color(1, 1, 1)
+    >>> actual == expected
+    True
 
     >>> actual = lighting(
     ...     Point(0, 0, 0),
@@ -897,17 +913,26 @@ def lighting(point, light, eye_vector, normal_vector, material=None, in_shadow=F
     >>> actual == expected
     True
 
-    >>> lighting(Point(0, 0, 0), PointLight(Point(0, 0, 10), Color(1, 1, 1)), Vector(0, 0, -1), Vector(0, 0, -1))
-    Color(0.1, 0.1, 0.1)
+    >>> actual = lighting(
+    ...     Point(0, 0, 0),
+    ...     PointLight(Point(0, 0, 10), Color(1, 1, 1)),
+    ...     Vector(0, 0, -1),
+    ...     Vector(0, 0, -1),
+    ... )
+    >>> expected = Color(0.1, 0.1, 0.1)
+    >>> actual == expected
+    True
 
-    >>> lighting(
+    >>> actual = lighting(
     ...     Point(0, 0, 0),
     ...     PointLight(Point(0, 0, -10), Color(1, 1, 1)),
     ...     Vector(0, 0, -1),
     ...     Vector(0, 0, -1),
     ...     in_shadow=True,
     ... )
-    Color(0.1, 0.1, 0.1)
+    >>> expected = Color(0.1, 0.1, 0.1)
+    >>> actual == expected
+    True
     """
     if material is None:
         material = Material()
@@ -1129,13 +1154,19 @@ class Camera:
         # type: (int, int) -> Ray
         """
         >>> actual = Camera(201, 101, PI / 2).pixel_ray(100, 50)
-        >>> expected = Ray(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, -1.0))
+        >>> expected = Ray(Point(0, 0, 0), Vector(0, 0, -1))
+        >>> actual == expected
+        True
 
         >>> actual = Camera(201, 101, PI / 2).pixel_ray(0, 0)
-        >>> expected = Ray(Point(0, 0, 0), Vector(0, 0, -1))
+        >>> expected = Ray(Point(0, 0, 0), Vector(0.66519, 0.33259, -0.66851))
+        >>> actual == expected
+        True
 
         >>> actual = Camera(201, 101, PI / 2, identity().translate(0, -2, 5).rotate_y(PI / 4)).pixel_ray(100, 50)
-        >>> expected = Ray(Point(0, 2, -5), Vector(-sqrt(2)/2, 0, -sqrt(2)/2))
+        >>> expected = Ray(Point(0, 2, -5), Vector(sqrt(2)/2, 0, -sqrt(2)/2))
+        >>> actual == expected
+        True
         """
         x_offset = (r + 0.5) * self.pixel_size
         y_offset = (c + 0.5) * self.pixel_size
@@ -1150,7 +1181,6 @@ class Camera:
         """
         >>> transform = view_transform(Point(0, 0, -5), Point(0, 0, 0), Vector(0, 1, 0))
         >>> canvas = Camera(11, 11, PI / 2, transform).render(World())
-        >>> #canvas.get_pixel_xy(5, 5) == Color(0.3807, 0.4758, 0.2855)
         >>> canvas.get_pixel_xy(5, 5) == Color(0.38066, 0.47583, 0.28550)
         True
         """
