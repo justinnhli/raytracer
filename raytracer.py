@@ -1174,7 +1174,7 @@ class Camera:
         if position is None:
             position = Point(0, 0, 0)
         if target is None:
-            target = Point(0, 0, -100)
+            target = position + Vector(0, 0, -1)
         if up is None:
             up = Vector(0, 1, 0)
         forward = (target - position).normalize()
