@@ -1099,32 +1099,32 @@ class Camera:
         self.pixel_size = (self.half_width * 2) / self.width
         self.transform = Camera._view_transform(position, target, up)
 
-    def pixel_ray(self, r, c):
+    def _pixel_ray(self, r, c):
         # type: (int, int) -> Ray
         """
-        >>> actual = Camera(201, 101, PI / 2).pixel_ray(50, 100)
+        >>> actual = Camera(201, 101, PI / 2)._pixel_ray(50, 100)
         >>> expected = Ray(Point(0, 0, 0), Vector(0, 0, -1))
         >>> actual == expected
         True
 
-        >>> actual = Camera(201, 101, PI / 2).pixel_ray(0, 0)
+        >>> actual = Camera(201, 101, PI / 2)._pixel_ray(0, 0)
         >>> expected = Ray(Point(0, 0, 0), Vector(-0.66519, 0.33259, -0.66851))
         >>> actual == expected
         True
 
-        >>> actual = Camera(201, 101, PI / 2, identity().translate(0, -2, 5).rotate_y(PI / 4)).pixel_ray(50, 100)
+        >>> actual = Camera(201, 101, PI / 2, Point(0, 2, -5), Point(2, 2, -7))._pixel_ray(50, 100)
         >>> expected = Ray(Point(0, 2, -5), Vector(sqrt(2)/2, 0, -sqrt(2)/2))
         >>> actual == expected
         True
         """
-        # computer the coordinates of the pixel, offsetting to the center of the pixel
+        # compute the coordinates of the pixel, offsetting to the center of the pixel
         # assumes the camera is at the origin looking at -z, and the canvas is at z=-1
         pixel = Point(
             -self.half_width + (c + 0.5) * self.pixel_size,
             self.half_height - (r + 0.5) * self.pixel_size,
             -1,
         )
-        # computer the ray from the camera to the pixel
+        # compute the ray from the camera to the pixel
         pixel = self.transform.inverse() @ pixel
         origin = self.transform.inverse() @ Point(0, 0, 0)
         return Ray(origin, (pixel - origin).normalize())
@@ -1139,7 +1139,7 @@ class Camera:
         result = Canvas(self.width, self.height)
         for r in range(self.height):
             for c in range(self.width):
-                result.set_pixel(r, c, world.color_at(self.pixel_ray(r, c)))
+                result.set_pixel(r, c, world.color_at(self._pixel_ray(r, c)))
         return result
 
     @staticmethod
