@@ -749,7 +749,8 @@ class Shape:
 
     def normal(self, point):
         # type: (Matrix) -> Matrix
-        raise NotImplementedError()
+        object_normal = self.local_normal(self.transform.inverse() @ point)
+        return (self.transform.inverse().transpose() @ object_normal).normalize()
 
 
 class Sphere(Shape):
@@ -780,10 +781,10 @@ class Sphere(Shape):
         >>> [intersection.t for intersection in intersections]
         []
         """
-        new_ray = ray.transform(self.transform.inverse())
-        vector = new_ray.origin - Point(0, 0, 0)
-        a = new_ray.direction.dot(new_ray.direction) # pylint: disable = invalid-name
-        b = 2 * new_ray.direction.dot(vector) # pylint: disable = invalid-name
+        local_ray = ray.transform(self.transform.inverse())
+        vector = local_ray.origin - Point(0, 0, 0)
+        a = local_ray.direction.dot(local_ray.direction) # pylint: disable = invalid-name
+        b = 2 * local_ray.direction.dot(vector) # pylint: disable = invalid-name
         c = vector.dot(vector) - 1 # pylint: disable = invalid-name
         discriminant = b * b - 4 * a * c
         if discriminant < 0:
@@ -794,7 +795,7 @@ class Sphere(Shape):
                 Intersection((-b + sqrt(discriminant)) / (2 * a), self, ray),
             ]
 
-    def normal(self, point):
+    def local_normal(self, local_point):
         # type: (Matrix) -> Matrix
         """
         >>> Sphere().normal(Point(1, 0, 0)) == Vector(1, 0, 0)
@@ -806,8 +807,7 @@ class Sphere(Shape):
         >>> Sphere().normal(Point(0, 0, 1)) == Vector(0, 0, 1)
         True
         """
-        object_normal = ((self.transform.inverse() @ point) - Point(0, 0, 0)).normalize()
-        return (self.transform.inverse().transpose() @ object_normal).normalize()
+        return (local_point - Point(0, 0, 0)).normalize()
 
 
 class PointLight:
