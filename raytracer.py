@@ -962,24 +962,17 @@ class World:
     def __init__(self, light=None, shapes=None):
         # type: (PointLight, list[Shape]) -> None
         if light is None:
-            light = PointLight(Point(-10, 10, -10), Color(1, 1, 1))
+            light = PointLight(Point(0, 0, 0), Color(1, 1, 1))
         self.light = light
-        self.shapes = [] # type: list[Shape]
         if shapes is None:
-            shapes = [
-                Sphere(material=Material(
-                    color=Color(0.8, 1.0, 0.6),
-                    diffuse=0.7,
-                    specular=0.2,
-                )),
-                Sphere(identity().scale(0.5, 0.5, 0.5)),
-            ]
-        self.shapes = list(shapes)
+            self.shapes = [] # type: list[Shape]
+        else:
+            self.shapes = list(shapes)
 
     def intersect(self, ray):
         # type: (Ray) -> list[Intersection]
         """
-        >>> intersections = World().intersect(Ray(Point(0, 0, -5), Vector(0, 0, 1)))
+        >>> intersections = World.default().intersect(Ray(Point(0, 0, -5), Vector(0, 0, 1)))
         >>> [intersection.t for intersection in intersections]
         [4.0, 4.5, 5.5, 6.0]
         """
@@ -991,13 +984,14 @@ class World:
     def shade_hit(self, intersection):
         # type: (Intersection) -> Color
         """
-        >>> world = World()
+        >>> world = World.default()
         >>> ray = Ray(Point(0, 0, -5), Vector(0, 0, 1))
         >>> intersection = hit(*world.shapes[0].intersect(ray))
         >>> world.shade_hit(intersection) == Color(0.380665, 0.47583, 0.28550)
         True
 
-        >>> world = World(light=PointLight(Point(0, 0.25, 0), Color(1, 1, 1)))
+        >>> world = World.default()
+        >>> world.light = PointLight(Point(0, 0.25, 0), Color(1, 1, 1))
         >>> ray = Ray(Point(0, 0, 0), Vector(0, 0, 1))
         >>> intersection = hit(*world.shapes[1].intersect(ray))
         >>> world.shade_hit(intersection) == Color(0.90498, 0.90498, 0.90498)
@@ -1027,15 +1021,15 @@ class World:
     def color_at(self, ray):
         # type: (Ray) -> Color
         """
-        >>> World().color_at(Ray(Point(0, 0, -5), Vector(0, 1, 0)))
+        >>> World.default().color_at(Ray(Point(0, 0, -5), Vector(0, 1, 0)))
         Color(0, 0, 0)
 
-        >>> actual = World().color_at(Ray(Point(0, 0, -5), Vector(0, 0, 1)))
+        >>> actual = World.default().color_at(Ray(Point(0, 0, -5), Vector(0, 0, 1)))
         >>> expected = Color(0.380665, 0.47583, 0.28550)
         >>> actual == expected
         True
 
-        >>> world = World()
+        >>> world = World.default()
         >>> world.shapes[0].material.ambient = 1
         >>> world.shapes[1].material.ambient = 1
         >>> actual = world.color_at(Ray(Point(0, 0, 0.75), Vector(0, 0, -1)))
@@ -1051,16 +1045,16 @@ class World:
     def is_shadowed(self, point):
         # type: (Matrix) -> bool
         """
-        >>> World().is_shadowed(Point(0, 10, 0))
+        >>> World.default().is_shadowed(Point(0, 10, 0))
         False
 
-        >>> World().is_shadowed(Point(10, -10, 10))
+        >>> World.default().is_shadowed(Point(10, -10, 10))
         True
 
-        >>> World().is_shadowed(Point(-20, 20, -20))
+        >>> World.default().is_shadowed(Point(-20, 20, -20))
         False
 
-        >>> World().is_shadowed(Point(-2, 2, -2))
+        >>> World.default().is_shadowed(Point(-2, 2, -2))
         False
 
         >>> World(
@@ -1072,6 +1066,21 @@ class World:
         distance = light_vector.magnitude
         intersection = hit(*self.intersect(Ray(point, light_vector.normalize())))
         return bool(intersection) and 0 < intersection.t < distance
+
+    @staticmethod
+    def default():
+        # type: () -> World
+        return World(
+            light=PointLight(Point(-10, 10, -10), Color(1, 1, 1)),
+            shapes = [
+                Sphere(material=Material(
+                    color=Color(0.8, 1.0, 0.6),
+                    diffuse=0.7,
+                    specular=0.2,
+                )),
+                Sphere(identity().scale(0.5, 0.5, 0.5)),
+            ],
+        )
 
 
 class Camera:
@@ -1132,7 +1141,7 @@ class Camera:
     def render(self, world):
         # type: (World) -> Canvas
         """
-        >>> canvas = Camera(11, 11, PI / 2, Point(0, 0, -5), Point(0, 0, 0), Vector(0, 1, 0)).render(World())
+        >>> canvas = Camera(11, 11, PI / 2, Point(0, 0, -5), Point(0, 0, 0), Vector(0, 1, 0)).render(World.default())
         >>> canvas.get_pixel(5, 5) == Color(0.38066, 0.47583, 0.28550)
         True
         """
