@@ -810,6 +810,36 @@ class Sphere(Shape):
         return (local_point - Point(0, 0, 0)).normalize()
 
 
+class Plane(Shape):
+
+    def intersect(self, ray):
+        # type: (Ray) -> list[Intersection]
+        """
+        >>> intersections = Plane().intersect(Ray(Point(0, 1, 0), Vector(0, -1, 0)))
+        >>> len(intersections)
+        1
+        >>> intersection = intersections[0]
+        >>> intersection.t
+        1.0
+
+        >>> intersections = Plane().intersect(Ray(Point(0, -1, 0), Vector(0, 1, 0)))
+        >>> len(intersections)
+        1
+        >>> intersection = intersections[0]
+        >>> intersection.t
+        1.0
+        """
+        local_ray = ray.transform(self.transform.inverse())
+        if abs(ray.direction.y) < EPSILON:
+            return []
+        else:
+            return [Intersection(-local_ray.origin.y / local_ray.direction.y, self, ray)]
+
+    def local_normal(self, local_point):
+        # type: (Matrix) -> Matrix
+        return Vector(0, 1, 0)
+
+
 class PointLight:
 
     def __init__(self, position, intensity):
@@ -1366,6 +1396,26 @@ def demo_axes(width, height):
         Point(0, 1, 0),
     )
     camera.render(world).save(Path('demo-axes.ppm'))
+
+
+def demo_plane():
+    world = World(
+        light=PointLight(Point(-10, 10, 2), Color(1, 1, 1)),
+        shapes=[
+            Sphere(
+                material=Material(color=Color(0.5, 1, 0.5)),
+                transform=identity().scale(2, 2, 2).translate(0, 2, 0),
+            ),
+            Plane(material=Material(color=Color(0.5, 0.5, 0.5))),
+        ],
+    )
+    camera = Camera(
+        100, 50, PI / 3,
+        Point(-10, 4, 10),
+        Point(0, 2, 0),
+        Point(0, 1, 0),
+    )
+    camera.render(world).save(Path('demo-plane.ppm'))
 
 
 def main():
