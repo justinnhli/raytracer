@@ -521,9 +521,9 @@ class Color:
 class Canvas:
     """
     >>> canvas = Canvas(5, 3)
-    >>> canvas.set_pixel_xy(0, 0, Color(1.5, 0, 0))
-    >>> canvas.set_pixel_xy(2, 1, Color(0, 0.5, 0))
-    >>> canvas.set_pixel_xy(4, 2, Color(-0.5, 0, 1))
+    >>> canvas.set_pixel(0, 0, Color(1.5, 0, 0))
+    >>> canvas.set_pixel(1, 2, Color(0, 0.5, 0))
+    >>> canvas.set_pixel(2, 4, Color(-0.5, 0, 1))
     >>> print(canvas.ppm)
     P3
     5 3
@@ -549,17 +549,9 @@ class Canvas:
         if key in self.canvas:
             self.canvas[key] = color
 
-    def set_pixel_xy(self, x, y, color):
-        # type: (float, float, Color) -> None
-        self.set_pixel(y, x, color)
-
     def get_pixel(self, row, col):
         # type: (int, int) -> Color
         return self.canvas[(row, col)]
-
-    def get_pixel_xy(self, x, y):
-        # type: (int, int) -> Color
-        return self.canvas[(y, x)]
 
     @property
     def ppm(self):
@@ -1181,13 +1173,13 @@ class Camera:
         """
         >>> transform = view_transform(Point(0, 0, -5), Point(0, 0, 0), Vector(0, 1, 0))
         >>> canvas = Camera(11, 11, PI / 2, transform).render(World())
-        >>> canvas.get_pixel_xy(5, 5) == Color(0.38066, 0.47583, 0.28550)
+        >>> canvas.get_pixel(5, 5) == Color(0.38066, 0.47583, 0.28550)
         True
         """
         result = Canvas(self.width, self.height)
         for y in range(self.height):
             for x in range(self.width):
-                result.set_pixel_xy(self.width - x - 1, y, world.color_at(self.pixel_ray(x, y)))
+                result.set_pixel(y, self.width - x - 1, world.color_at(self.pixel_ray(x, y)))
         return result
 
 
