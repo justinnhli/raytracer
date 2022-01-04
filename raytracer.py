@@ -1183,66 +1183,81 @@ class Camera:
         return result
 
 
-def test_gravity():
+def demo_vectors():
     # type: () -> None
-    position = Point(0, 100, 0)
+    position = Point(0, 1, 0)
     velocity = Vector(1, 1.8, 0).normalize() * 11.25
     gravity = Vector(0, -0.1, 0)
     wind = Vector(-0.01, 0, 0)
     canvas = Canvas(900, 550)
     while position.y > 0:
-        canvas.set_pixel(550 - position.y - 1, position.x, Color(1, 0, 0))
+        canvas.set_pixel(canvas.height - position.y, position.x, Color(1, 0, 0))
         position += velocity
         velocity += gravity + wind
-    canvas.save(Path('gravity.ppm'))
+    canvas.save(Path('demo_vectors.ppm'))
 
 
-def test_clock():
+def demo_transforms():
     # type: () -> None
     position = Point(0, 50, 0)
     rotate = identity().rotate_z(PI / 6)
-    translate = identity().translate(75, 75, 0)
     canvas = Canvas(150, 150)
+    screen_transform = (
+        identity()
+        .scale(1, -1, 0)
+        .translate(canvas.width // 2, canvas.height // 2 - 1, 0)
+    )
     for _ in range(12):
-        temp_pos = translate @ position
-        canvas.set_pixel_xy(temp_pos.x, temp_pos.y, Color(1, 0, 0))
+        screen_coord = screen_transform @ position
+        canvas.set_pixel(screen_coord.y, screen_coord.x, Color(1, 0, 0))
         position = rotate @ position
-    canvas.save(Path('clock.ppm'))
+    canvas.save(Path('demo-transforms.ppm'))
 
 
-def test_intersection():
+def demo_intersection():
     # type: () -> None
-    sphere = Sphere(identity().scale(20, 20, 20))
+    sphere = Sphere(identity().scale(15, 15, 15))
     canvas = Canvas(60, 60)
     ray_origin = Point(0, 0, 70)
-    for x in range(60):
-        world_x = x - 30
-        for y in range(60):
-            world_y = y - 30
-            ray = Ray(ray_origin, (Point(world_x, world_y, -30) - ray_origin).normalize())
+    screen_transform = (
+        identity()
+        .scale(1, -1, 0)
+        .translate(canvas.width // 2, canvas.height // 2 - 1, 0)
+    )
+    for x in range(canvas.width):
+        world_x = x - canvas.width // 2
+        for y in range(canvas.height):
+            world_y = y - canvas.height // 2
+            ray = Ray(ray_origin, (Point(world_x + 0.5, world_y + 0.5, -30) - ray_origin).normalize())
+            screen_coord = screen_transform @ Point(world_x, world_y, -30)
             if sphere.intersect(ray):
-                canvas.set_pixel_xy(x, y, Color(0, 0, 0))
+                canvas.set_pixel(screen_coord.y, screen_coord.x, Color(0, 0, 0))
             else:
-                canvas.set_pixel_xy(x, y, Color(1, 1, 1))
-    canvas.save(Path('intersection.ppm'))
+                canvas.set_pixel(screen_coord.y, screen_coord.x, Color(1, 1, 1))
+    canvas.save(Path('demo-intersection.ppm'))
 
 
-def test_lighting():
+def demo_lighting():
     # type: () -> None
     material = Material(color=Color(.74, .13, .13))
     sphere = Sphere(identity().scale(20, 20, 20), material=material)
     light = PointLight(Point(70, 70, 70), Color(1, 1, 1))
     eye = Point(0, 0, 60)
     canvas = Canvas(100, 100)
+    screen_transform = (
+        identity()
+        .scale(1, -1, 0)
+        .translate(canvas.width // 2, canvas.height // 2 - 1, 0)
+    )
     for x in range(canvas.width):
-        world_x = x - (canvas.width // 2)
+        world_x = x - canvas.width // 2
         for y in range(canvas.height):
-            world_y = y - (canvas.height // 2)
-            y = canvas.width - y
+            world_y = y - canvas.height // 2
             ray = Ray(eye, Point(world_x, world_y, -30) - eye)
             hit_point = hit(*sphere.intersect(ray))
+            screen_coord = screen_transform @ Point(world_x, world_y, -30)
             if not hit_point:
-                canvas.set_pixel_xy(x, y, Color(0, 0, 0))
+                canvas.set_pixel(screen_coord.y, screen_coord.x, Color(0, 0, 0))
                 continue
             point = ray.position(hit_point.t)
             color = lighting(
@@ -1250,12 +1265,13 @@ def test_lighting():
                 light=light,
                 eye_vector=-ray.direction,
                 normal_vector=hit_point.shape.normal(point),
-                material=material)
-            canvas.set_pixel_xy(x, y, color)
-    canvas.save(Path('lighting.ppm'))
+                material=material,
+            )
+            canvas.set_pixel(screen_coord.y, screen_coord.x, color)
+    canvas.save(Path('demo-lighting.ppm'))
 
 
-def test_camera():
+def demo_camera():
     # type: () -> None
     floor = Sphere(
         transform=identity().scale(10, 0.01, 10),
@@ -1296,11 +1312,11 @@ def test_camera():
             Point(0, 1, 0),
         ),
     )
-    camera.render(world).save(Path('camera.ppm'))
+    camera.render(world).save(Path('demo-camera.ppm'))
 
 
-def test_axes():
-    # type: () -> None
+def demo_axes(width, height):
+    # type: (int, int) -> None
     world = World(
         light=PointLight(Point(10, 10, 10), Color(1, 1, 1)),
         shapes=[
@@ -1330,17 +1346,17 @@ def test_axes():
             ),
         ],
     )
-    camera = Camera(500, 250, PI / 3, transform=view_transform(
+    camera = Camera(width, height, PI / 3, transform=view_transform(
         Point(0, 3, 10),
         Point(0, 0, 0),
         Point(0, 1, 0),
     ))
-    camera.render(world).save(Path('axes.ppm'))
+    camera.render(world).save(Path('demo-axes.ppm'))
 
 
 def main():
     # type: () -> None
-    test_axes()
+    demo_axes(100, 50)
 
 
 if __name__ == '__main__':
