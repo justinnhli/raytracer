@@ -1145,26 +1145,30 @@ class Camera:
     def pixel_ray(self, r, c):
         # type: (int, int) -> Ray
         """
-        >>> actual = Camera(201, 101, PI / 2).pixel_ray(100, 50)
+        >>> actual = Camera(201, 101, PI / 2).pixel_ray(50, 100)
         >>> expected = Ray(Point(0, 0, 0), Vector(0, 0, -1))
         >>> actual == expected
         True
 
         >>> actual = Camera(201, 101, PI / 2).pixel_ray(0, 0)
-        >>> expected = Ray(Point(0, 0, 0), Vector(0.66519, 0.33259, -0.66851))
+        >>> expected = Ray(Point(0, 0, 0), Vector(-0.66519, 0.33259, -0.66851))
         >>> actual == expected
         True
 
-        >>> actual = Camera(201, 101, PI / 2, identity().translate(0, -2, 5).rotate_y(PI / 4)).pixel_ray(100, 50)
+        >>> actual = Camera(201, 101, PI / 2, identity().translate(0, -2, 5).rotate_y(PI / 4)).pixel_ray(50, 100)
         >>> expected = Ray(Point(0, 2, -5), Vector(sqrt(2)/2, 0, -sqrt(2)/2))
         >>> actual == expected
         True
         """
-        x_offset = (r + 0.5) * self.pixel_size
-        y_offset = (c + 0.5) * self.pixel_size
-        world_x = self.half_width - x_offset
-        world_y = self.half_height - y_offset
-        pixel = self.transform.inverse() @ Point(world_x, world_y, -1)
+        # computer the coordinates of the pixel, offsetting to the center of the pixel
+        # assumes the camera is at the origin looking at -z, and the canvas is at z=-1
+        pixel = Point(
+            -self.half_width + (c + 0.5) * self.pixel_size,
+            self.half_height - (r + 0.5) * self.pixel_size,
+            -1,
+        )
+        # computer the ray from the camera to the pixel
+        pixel = self.transform.inverse() @ pixel
         origin = self.transform.inverse() @ Point(0, 0, 0)
         return Ray(origin, (pixel - origin).normalize())
 
@@ -1177,9 +1181,9 @@ class Camera:
         True
         """
         result = Canvas(self.width, self.height)
-        for y in range(self.height):
-            for x in range(self.width):
-                result.set_pixel(y, self.width - x - 1, world.color_at(self.pixel_ray(x, y)))
+        for r in range(self.height):
+            for c in range(self.width):
+                result.set_pixel(r, c, world.color_at(self.pixel_ray(r, c)))
         return result
 
 
