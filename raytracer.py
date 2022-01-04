@@ -1074,50 +1074,10 @@ class World:
         return bool(intersection) and 0 < intersection.t < distance
 
 
-def view_transform(position, target, up): # pylint: disable = invalid-name
-    # type: (Matrix, Matrix, Matrix) -> Matrix
-    """
-    >>> actual = view_transform(Point(0, 0, 0), Point(0, 0, -1), Point(0, 1, 0))
-    >>> expected = identity()
-    >>> actual == expected
-    True
-
-    >>> actual = view_transform(Point(0, 0, 0), Point(0, 0, 1), Point(0, 1, 0))
-    >>> expected = identity().scale(-1, 1, -1)
-    >>> actual == expected
-    True
-
-    >>> actual = view_transform(Point(0, 0, 8), Point(0, 0, 0), Point(0, 1, 0))
-    >>> expected = identity().translate(0, 0, -8)
-    >>> actual == expected
-    True
-
-    >>> actual = view_transform(Point(1, 3, 2), Point(4, -2, 8), Point(1, 1, 0))
-    >>> expected = Matrix([
-    ...    [-0.50709, 0.50709, 0.67612, -2.36643],
-    ...    [0.76772, 0.60609, 0.12122, -2.82843],
-    ...    [-0.35857, 0.59761, -0.71714, 0.0],
-    ...    [0, 0, 0, 1]
-    ... ])
-    >>> actual == expected
-    True
-    """
-    forward = (target - position).normalize()
-    left = forward.cross(up.normalize())
-    up = left.cross(forward)
-    orientation = Matrix([
-        [left.x, left.y, left.z, 0],
-        [up.x, up.y, up.z, 0],
-        [-forward.x, -forward.y, -forward.z, 0],
-        [0, 0, 0, 1],
-    ])
-    return orientation @ identity().translate(-position.x, -position.y, -position.z)
-
-
 class Camera:
 
-    def __init__(self, width, height, fov, transform=None):
-        # type: (int, int, float, Matrix) -> None
+    def __init__(self, width, height, fov, position=None, target=None, up=None): # pylint: disable = invalid-name
+        # type: (int, int, float, Matrix, Matrix, Matrix) -> None
         """
         >>> round(Camera(200, 125, PI / 2).pixel_size, 2)
         0.01
@@ -1128,10 +1088,6 @@ class Camera:
         self.width = width
         self.height = height
         self.fov = fov
-        if transform is None:
-            self.transform = identity()
-        else:
-            self.transform = transform
         half_view = tan(self.fov / 2)
         aspect = self.width / self.height
         if aspect >= 1:
@@ -1141,6 +1097,7 @@ class Camera:
             self.half_width = half_view * aspect
             self.half_height = half_view
         self.pixel_size = (self.half_width * 2) / self.width
+        self.transform = Camera._view_transform(position, target, up)
 
     def pixel_ray(self, r, c):
         # type: (int, int) -> Ray
@@ -1175,8 +1132,7 @@ class Camera:
     def render(self, world):
         # type: (World) -> Canvas
         """
-        >>> transform = view_transform(Point(0, 0, -5), Point(0, 0, 0), Vector(0, 1, 0))
-        >>> canvas = Camera(11, 11, PI / 2, transform).render(World())
+        >>> canvas = Camera(11, 11, PI / 2, Point(0, 0, -5), Point(0, 0, 0), Vector(0, 1, 0)).render(World())
         >>> canvas.get_pixel(5, 5) == Color(0.38066, 0.47583, 0.28550)
         True
         """
@@ -1185,6 +1141,52 @@ class Camera:
             for c in range(self.width):
                 result.set_pixel(r, c, world.color_at(self.pixel_ray(r, c)))
         return result
+
+    @staticmethod
+    def _view_transform(position=None, target=None, up=None): # pylint: disable = invalid-name
+        # type: (Matrix, Matrix, Matrix) -> Matrix
+        """
+        >>> actual = Camera._view_transform(Point(0, 0, 0), Point(0, 0, -1), Vector(0, 1, 0))
+        >>> expected = identity()
+        >>> actual == expected
+        True
+
+        >>> actual = Camera._view_transform(Point(0, 0, 0), Point(0, 0, 1), Vector(0, 1, 0))
+        >>> expected = identity().scale(-1, 1, -1)
+        >>> actual == expected
+        True
+
+        >>> actual = Camera._view_transform(Point(0, 0, 8), Point(0, 0, 0), Vector(0, 1, 0))
+        >>> expected = identity().translate(0, 0, -8)
+        >>> actual == expected
+        True
+
+        >>> actual = Camera._view_transform(Point(1, 3, 2), Point(4, -2, 8), Vector(1, 1, 0))
+        >>> expected = Matrix([
+        ...    [-0.50709, 0.50709, 0.67612, -2.36643],
+        ...    [0.76772, 0.60609, 0.12122, -2.82843],
+        ...    [-0.35857, 0.59761, -0.71714, 0.0],
+        ...    [0, 0, 0, 1]
+        ... ])
+        >>> actual == expected
+        True
+        """
+        if position is None:
+            position = Point(0, 0, 0)
+        if target is None:
+            target = Point(0, 0, -100)
+        if up is None:
+            up = Vector(0, 1, 0)
+        forward = (target - position).normalize()
+        left = forward.cross(up.normalize())
+        up = left.cross(forward)
+        orientation = Matrix([
+            [left.x, left.y, left.z, 0],
+            [up.x, up.y, up.z, 0],
+            [-forward.x, -forward.y, -forward.z, 0],
+            [0, 0, 0, 1],
+        ])
+        return orientation @ identity().translate(-position.x, -position.y, -position.z)
 
 
 def demo_vectors():
@@ -1310,11 +1312,9 @@ def demo_camera():
     )
     camera = Camera(
         100, 50, PI / 3,
-        transform=view_transform(
-            Point(0, 1.5, -5),
-            Point(0, 1, 0),
-            Point(0, 1, 0),
-        ),
+        Point(0, 1.5, -5),
+        Point(0, 1, 0),
+        Point(0, 1, 0),
     )
     camera.render(world).save(Path('demo-camera.ppm'))
 
@@ -1350,11 +1350,12 @@ def demo_axes(width, height):
             ),
         ],
     )
-    camera = Camera(width, height, PI / 3, transform=view_transform(
+    camera = Camera(
+        width, height, PI / 3,
         Point(0, 3, 10),
         Point(0, 0, 0),
         Point(0, 1, 0),
-    ))
+    )
     camera.render(world).save(Path('demo-axes.ppm'))
 
 
