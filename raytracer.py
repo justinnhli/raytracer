@@ -743,6 +743,10 @@ class Shape:
         # type: () -> str
         return f'{type(self)}({self.transform})' # FIXME ignores transform and material
 
+    def _local_ray(self, ray):
+        # type: (Ray) -> Ray
+        return ray.transform(self.transform.inverse())
+
     def intersect(self, ray):
         # type: (Ray) -> list[Intersection]
         raise NotImplementedError()
@@ -781,7 +785,7 @@ class Sphere(Shape):
         >>> [intersection.t for intersection in intersections]
         []
         """
-        local_ray = ray.transform(self.transform.inverse())
+        local_ray = self._local_ray(ray)
         vector = local_ray.origin - Point(0, 0, 0)
         a = local_ray.direction.dot(local_ray.direction) # pylint: disable = invalid-name
         b = 2 * local_ray.direction.dot(vector) # pylint: disable = invalid-name
@@ -829,7 +833,7 @@ class Plane(Shape):
         >>> intersection.t
         1.0
         """
-        local_ray = ray.transform(self.transform.inverse())
+        local_ray = self._local_ray(ray)
         if abs(ray.direction.y) < EPSILON:
             return []
         else:
