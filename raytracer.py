@@ -1463,15 +1463,15 @@ def demo_axes(width, height):
         shapes=[
             Sphere( # xy "plane"
                 material=Material(color=Color(0.5, 0.5, 1), specular=0),
-                transform=identity().scale(50, 50, 50).translate(0, 0, -53),
+                transform=identity().scale(50, 50, 0.1).translate(0, 0, -3),
             ),
             Sphere( # yz "plane"
                 material=Material(color=Color(1, 0.5, 0.5), specular=0),
-                transform=identity().scale(50, 50, 50).translate(-53, 0, 0),
+                transform=identity().scale(0.1, 50, 50).translate(-3, 0, 0),
             ),
             Sphere( # xz "plane"
                 material=Material(color=Color(0.5, 1, 0.5), specular=0),
-                transform=identity().scale(50, 50, 50).translate(0, -53, 0),
+                transform=identity().scale(50, 0.1, 50).translate(0, -3, 0),
             ),
             Sphere( # x sphere (red)
                 material=Material(color=Color(1, 0, 0)),
