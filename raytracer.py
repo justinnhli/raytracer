@@ -844,6 +844,100 @@ class Plane(Shape):
         return Vector(0, 1, 0)
 
 
+class Cube(Shape):
+
+    def intersect(self, ray):
+        # type: (Ray) -> list[Intersection]
+        """
+        >>> [intersection.t for intersection in Cube().intersect(Ray(Point(5, 0, 0), Vector(-1, 0, 0)))]
+        [4.0, 6.0]
+        >>> [intersection.t for intersection in Cube().intersect(Ray(Point(-5, 0, 0), Vector(1, 0, 0)))]
+        [4.0, 6.0]
+        >>> [intersection.t for intersection in Cube().intersect(Ray(Point(0, 5, 0), Vector(0, -1, 0)))]
+        [4.0, 6.0]
+        >>> [intersection.t for intersection in Cube().intersect(Ray(Point(0, -5, 0), Vector(0, 1, 0)))]
+        [4.0, 6.0]
+        >>> [intersection.t for intersection in Cube().intersect(Ray(Point(0, 0, 5), Vector(0, 0, -1)))]
+        [4.0, 6.0]
+        >>> [intersection.t for intersection in Cube().intersect(Ray(Point(0, 0, -5), Vector(0, 0, 1)))]
+        [4.0, 6.0]
+        >>> [intersection.t for intersection in Cube().intersect(Ray(Point(0, 0.5, 0), Vector(0, 0, 1)))]
+        [-1.0, 1.0]
+        >>> actual = [
+        ...     intersection.t for intersection
+        ...     in Cube().intersect(Ray(Point(0, 0, 0), Vector(1, 1, 1).normalize()))
+        ... ]
+        >>> expected = [-sqrt(3), sqrt(3)]
+        >>> all(isclose(a, b, abs_tol=EPSILON) for a, b in zip(actual, expected))
+        True
+
+        >>> Cube().intersect(Ray(Point(-2, 0, 0), Vector(0.2673, 0.5345, 0.8018)))
+        []
+        >>> Cube().intersect(Ray(Point(0, -2, 0), Vector(0.8018, 0.2673, 0.5345)))
+        []
+        >>> Cube().intersect(Ray(Point(0, 0, -2), Vector(0.5345, 0.8018, 0.2673)))
+        []
+        >>> Cube().intersect(Ray(Point(2, 0, 2), Vector(0, 0, -1)))
+        []
+        >>> Cube().intersect(Ray(Point(0, 2, 2), Vector(0, -1, 0)))
+        []
+        >>> Cube().intersect(Ray(Point(2, 2, 0), Vector(-1, 0, 0)))
+        []
+        """
+        local_ray = self._local_ray(ray)
+        xtmin, xtmax = self._check_axis(local_ray.origin.x, local_ray.direction.x)
+        ytmin, ytmax = self._check_axis(local_ray.origin.y, local_ray.direction.y)
+        ztmin, ztmax = self._check_axis(local_ray.origin.z, local_ray.direction.z)
+        tmin = max(xtmin, ytmin, ztmin)
+        tmax = min(xtmax, ytmax, ztmax)
+        if tmin > tmax:
+            return []
+        else:
+            return Intersection(tmin, self, ray), Intersection(tmax, self, ray)
+
+    def local_normal(self, local_point):
+        # type: (Ray) -> list[Intersection]
+        """
+        >>> Cube().local_normal(Point(1, 0.5, -0.8)) == Vector(1, 0, 0)
+        True
+        >>> Cube().local_normal(Point(-1, -0.2, 0.9)) == Vector(-1, 0, 0)
+        True
+        >>> Cube().local_normal(Point(-0.4, 1, -0.1)) == Vector(0, 1, 0)
+        True
+        >>> Cube().local_normal(Point(0.3, -1, -0.7)) == Vector(0, -1, 0)
+        True
+        >>> Cube().local_normal(Point(-0.6, 0.3, 1)) == Vector(0, 0, 1)
+        True
+        >>> Cube().local_normal(Point(0.4, 0.4, -1)) == Vector(0, 0, -1)
+        True
+        >>> Cube().local_normal(Point(1, 1, 1)) == Vector(1, 0, 0)
+        True
+        >>> Cube().local_normal(Point(-1, -1, -1)) == Vector(-1, 0, 0)
+        True
+        """
+        maximum = max(abs(i) for i in [local_point.x, local_point.y, local_point.z])
+        if maximum == abs(local_point.x):
+            return Vector(local_point.x, 0, 0)
+        elif maximum == abs(local_point.y):
+            return Vector(0, local_point.y, 0)
+        else:
+            return Vector(0, 0, local_point.z)
+
+    @staticmethod
+    def _check_axis(origin, direction):
+        # type: (float, float) -> tuple[float, float]
+        tmin_numerator = -1 - origin
+        tmax_numerator = 1 - origin
+        if abs(direction) >= EPSILON:
+            tmin = tmin_numerator / direction
+            tmax = tmax_numerator / direction
+        else:
+            tmin = tmin_numerator * float('Inf')
+            tmax = tmax_numerator * float('Inf')
+        return sorted([tmin, tmax])
+
+
+
 class PointLight:
 
     def __init__(self, position, intensity):
@@ -1420,6 +1514,30 @@ def demo_plane():
         Point(0, 1, 0),
     )
     camera.render(world).save(Path('demo-plane.ppm'))
+
+
+def demo_cube():
+    world = World(
+        light=PointLight(Point(-10, 6, 2), Color(1, 1, 1)),
+        shapes=[
+            Sphere(
+                material=Material(color=Color(0.75, 0.15, 0.15)),
+                transform=identity().translate(0, 3, 0),
+            ),
+            Cube(
+                material=Material(color=Color(0.15, 0.15, 0.75)),
+                transform=identity().translate(0, 1, 0),
+            ),
+            Plane(material=Material(color=Color(0.5, 0.5, 0.5))),
+        ],
+    )
+    camera = Camera(
+        500, 250, PI / 3,
+        Point(-5, 4, 10),
+        Point(0, 2, 0),
+        Point(0, 1, 0),
+    )
+    camera.render(world).save(Path('demo-cube.ppm'))
 
 
 def main():
